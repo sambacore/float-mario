@@ -48,10 +48,11 @@ const GROUND_Y = H - TILE * 2; // y position of ground surface
 const PLAYER_W = 12, PLAYER_H = 16;
 const GRAVITY = 0; // NO GRAVITY
 const UPWARD_DRIFT = -0.3; // constant upward drift when NOT jumping
-const JUMP_VEL = -9.5;
-const MAX_HSPEED = 2.8;
-const HACCEL = 0.4;
-const HFRICTION = 0.25;
+const JUMP_VEL = -7.5;
+const MAX_HSPEED = 3.8;
+const HACCEL = 0.55;
+const HFRICTION = 0.18;
+const JUMP_DECEL = 0.22; // gentle gravity when rising after jump
 const DEATH_TOP_MARGIN = 0; // die when y < 0
 const WARN_MARGIN = 80;
 
@@ -634,6 +635,7 @@ function update(dt) {
   const rightHeld = keys['ArrowRight'] || keys['KeyD'] || touch.right;
   const jumpHeld = touch.jump; // not used for held, just jumpPressed
 
+  const airFriction = grounded ? HFRICTION : HFRICTION * 0.4;
   if (leftHeld) {
     pvx -= HACCEL;
     if (pvx < -MAX_HSPEED) pvx = -MAX_HSPEED;
@@ -644,8 +646,8 @@ function update(dt) {
     facingRight = true;
   } else {
     // Friction
-    if (Math.abs(pvx) < HFRICTION) pvx = 0;
-    else pvx -= Math.sign(pvx) * HFRICTION;
+    if (Math.abs(pvx) < airFriction) pvx = 0;
+    else pvx -= Math.sign(pvx) * airFriction;
   }
 
   // Upward drift when grounded (the anti-gravity feel)
@@ -662,6 +664,14 @@ function update(dt) {
     grounded = false;
     jumpBuffer = 0;
     coyoteTime = 0;
+  }
+
+  // Arc: if airborne and rising, decelerate upward; if falling, drift back toward UPWARD_DRIFT
+  if (!grounded) {
+    if (pvy < UPWARD_DRIFT) {
+      pvy += JUMP_DECEL;
+      if (pvy > UPWARD_DRIFT) pvy = UPWARD_DRIFT;
+    }
   }
 
   // Resolve collisions

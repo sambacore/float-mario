@@ -657,7 +657,7 @@ function update(dt) {
   if (jumpBuffer > 0) jumpBuffer -= dt;
   if (coyoteTime > 0) coyoteTime -= dt;
 
-  if (jumpBuffer > 0 && (grounded || coyoteTime > 0)) {
+  if (jumpBuffer > 0) {
     pvy = JUMP_VEL;
     grounded = false;
     jumpBuffer = 0;
